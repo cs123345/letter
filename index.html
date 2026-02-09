@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>太阳之花与你</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 全局设置 --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh; /* 兼容手机浏览器地址栏 */
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "KaiTi", "STKaiti", "Baskerville", cursive, serif;
+            background-color: #fcf9ea;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+
+        /* --- 页面层级管理 --- */
+        #page-1 {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 30;
+            display: block;
+            /* 修改路径：从 ../static/ 改为 static/ */
+            background-image: url('static/1.jpg');
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+        }
+
+        .intro-wrapper {
+            position: absolute;
+            bottom: 20%;
+            left: 3%;
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .intro-sub {
+            font-family: "Ma Shan Zheng", cursive;
+            font-size: 3.5rem;
+            color: #ffffff;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 25px rgba(255,255,255, 0.9);
+            font-weight: normal;
+            animation: breathe 3s infinite ease-in-out;
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                opacity: 0.8;
+                transform: scale(0.98);
+                text-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 15px rgba(255,255,255, 0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+                text-shadow: 2px 2px 8px rgba(0,0,0,0.4), 0 0 35px rgba(255,255,255, 1);
+            }
+        }
+
+        /* 背景图通用样式 */
+        .bg-page {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            transform: scale(1.05);
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 修改路径：全部移除 ../ */
+        #page-2 { z-index: 20; background-image: url('static/2.jpg'); background-position: center 20%; }
+        #page-3 { z-index: 10; background-image: url('static/3.jpg'); }
+        #page-4 { z-index: 5; background-image: url('static/4.jpg'); }
+        #page-5 { z-index: 3; background-image: url('static/5.jpg'); }
+        #page-6 { z-index: 2; background-image: url('static/6.jpg'); }
+        #page-7 { z-index: 1; background-image: url('static/7.jpg'); }
+        #page-8 { z-index: 0; background-image: url('static/8.jpg'); }
+
+        .copyright {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #444;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* --- 触发器样式 --- */
+        .trigger-area {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 5;
+        }
+        .trigger-area:hover {
+            box-shadow: 0 0 60px rgba(255, 255, 255, 0.8);
+            transition: box-shadow 0.8s ease;
+        }
+
+        /* PC端触发器位置 */
+        #trigger-2 { top: 15%; left: 50%; transform: translate(-50%, 0); width: 25vw; height: 25vh; }
+        #trigger-3 { top: 8%; left: 50%; transform: translate(-50%, 0); width: 30vw; height: 30vh; }
+        #trigger-4 { top: 10%; left: 50%; transform: translate(-50%, 0); width: 35vw; height: 25vh; }
+        #trigger-5 { top: 15%; left: 50%; transform: translate(-50%, 0); width: 30vw; height: 25vh; }
+        #trigger-6 { top: 18%; left: 50%; transform: translate(-50%, 0); width: 30vw; height: 25vh; }
+        #trigger-7 { top: 45%; left: 50%; transform: translate(-50%, -50%); width: 30vw; height: 30vh; }
+
+        /* --- 诗歌滚动容器 --- */
+        .poem-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 50;
+            overflow-y: auto;
+            scrollbar-width: none;
+            opacity: 0;
+            visibility: hidden;
+            background: rgba(255, 255, 255, 0);
+            transition: background 1s ease, backdrop-filter 1s ease;
+            cursor: pointer;
+        }
+        .poem-layer.active {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .poem-layer::-webkit-scrollbar { display: none; }
+
+        /* --- UI 控件 --- */
+        .hand-drawn-arrow {
+            width: 50px; height: 50px;
+            stroke: #444; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; fill: none;
+            filter: drop-shadow(0 0 2px rgba(255,255,255,0.6));
+            transition: stroke 0.3s, stroke-width 0.3s;
+        }
+
+        .ui-fixed-element {
+            position: fixed; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .scroll-indicator {
+            bottom: 30px; left: 50%; transform: translateX(-50%); animation: bounce 2s infinite;
+        }
+
+        .next-arrow-btn {
+            margin-top: 80px; cursor: pointer; opacity: 0; animation: bounce 2s infinite;
+            display: inline-block; transition: transform 0.3s;
+        }
+        .next-arrow-btn:hover { transform: scale(1.2); }
+        .next-arrow-btn:hover .hand-drawn-arrow { stroke: #000; stroke-width: 3.5; }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateX(0) translateY(0);}
+            40% {transform: translateX(0) translateY(-10px);}
+            60% {transform: translateX(0) translateY(-5px);}
+        }
+
+        .poem-content {
+            padding: 0 5vw; text-align: center; max-width: 800px; margin: 0 auto;
+            min-height: 100vh; padding-bottom: 20vh;
+        }
+        .spacer-top { height: 60vh; }
+
+        .poem-line {
+            font-size: 1.8rem; line-height: 2.4; color: #111; margin-bottom: 12px;
+            opacity: 0; transform: translateY(30px); filter: blur(10px);
+            text-shadow: 0 0 8px rgba(255,255,255,0.7);
+        }
+        .highlight { font-size: 2.2rem; color: #000; }
+        .poem-break { height: 60px; }
+
+
+        /* 手机端优化 */
+        @media screen and (max-width: 768px) {
+            .intro-sub { font-size: 2.8rem; }
+            .poem-line { font-size: 1.4rem; line-height: 2.0; margin-bottom: 8px; }
+            .highlight { font-size: 1.7rem; }
+            .poem-content { padding: 0 15px; }
+            .spacer-top { height: 30vh; }
+            .poem-break { height: 40px; }
+            .bg-page, #page-1 {
+                background-position: center center !important;
+                background-attachment: scroll !important;
+            }
+            .trigger-area {
+                width: 70vw !important; height: 50vh !important;
+                top: 50% !important; left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+            }
+            .next-arrow-btn { margin-top: 40px; }
+            .hand-drawn-arrow { width: 40px; height: 40px; }
+            .intro-wrapper { left: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop style="display: none;">
+        <source src="static/yinyue.mp3" type="audio/mpeg">
+        <source src="static/yinyue.mp3" type="audio/mp3">
+        您的浏览器不支持音频播放。
+    </audio>
+
+    <div id="page-1" onclick="transitionToPage2()">
+        <div class="intro-wrapper">
+            <div class="intro-sub">Serendipity</div>
+        </div>
+    </div>
+
+    <div id="page-2" class="bg-page"> <div id="trigger-2" class="trigger-area" onclick="openPoem('poem-layer-2')"></div> </div>
+    <div id="page-3" class="bg-page"> <div id="trigger-3" class="trigger-area" onclick="openPoem('poem-layer-3')"></div> </div>
+    <div id="page-4" class="bg-page"> <div id="trigger-4" class="trigger-area" onclick="openPoem('poem-layer-4')"></div> </div>
+    <div id="page-5" class="bg-page"> <div id="trigger-5" class="trigger-area" onclick="openPoem('poem-layer-5')"></div> </div>
+    <div id="page-6" class="bg-page"> <div id="trigger-6" class="trigger-area" onclick="openPoem('poem-layer-6')"></div> </div>
+    <div id="page-7" class="bg-page"> <div id="trigger-7" class="trigger-area" onclick="openPoem('poem-layer-7')"></div> </div>
+
+    <div id="page-8" class="bg-page">
+        <div class="copyright">
+            © lee18437729096@163.com
+        </div>
+    </div>
+
+    <div class="ui-fixed-element scroll-indicator" id="scroll-arrow">
+        <svg class="hand-drawn-arrow" viewBox="0 0 30 30">
+            <path d="M15 3 Q 14 15 15 28" />
+            <path d="M 5 16 Q 10 22 15 28" />
+            <path d="M 25 16 Q 20 22 15 28" />
+        </svg>
+    </div>
+
+    <div id="poem-layer-2" class="poem-layer" onclick="transitionToPage3(event)">
+        <div class="poem-content">
+            <div class="spacer-top"></div>
+            <div class="poem-line highlight">嘿，</div>
+            <div class="poem-line highlight">你好哇！</div>
+            <div class="poem-line">嘿，</div>
+            <div class="poem-line">你好哇！</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我带着腼腆，</div>
+            <div class="poem-line">你却带着雄风。</div>
+            <div class="poem-line">我被你的声音拽了一下，</div>
+            <div class="poem-line">从乌黑的漩涡中。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我抬头看狭窄的天空，</div>
+            <div class="poem-line">一副新面孔，</div>
+            <div class="poem-line">来自另一个平行宇宙。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">泥泞里，</div>
+            <div class="poem-line">透了口气，</div>
+            <div class="poem-line">那是你裹挟的风。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">原来，</div>
+            <div class="poem-line">睫毛可以这样，</div>
+            <div class="poem-line highlight">弯曲，</div>
+            <div class="poem-line highlight">些许美丽。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我呆呆地</div>
+            <div class="poem-line">望着你的侧脸，</div>
+            <div class="poem-line">听你讲，</div>
+            <div class="poem-line">漫长的等待</div>
+            <div class="poem-line">与焦急。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我真想帮你，</div>
+            <div class="poem-line">像是耳旁风。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我对这片大地有些生疏，</div>
+            <div class="poem-line">在你与黑暗之中，</div>
+            <div class="poem-line">光选择逃逸。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">一个照面，</div>
+            <div class="poem-line">我记住的花丛，</div>
+            <div class="poem-line">你披的，</div>
+            <div class="poem-line highlight">是太阳之花，</div>
+            <div class="poem-line">铺平你的衣襟。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你有着一套，</div>
+            <div class="poem-line">“超绝气泡音”，</div>
+            <div class="poem-line">独特交响，</div>
+            <div class="poem-line">我之后才会明了，</div>
+            <div class="poem-line">那或是你疼痛的前兆。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">有种东西，</div>
+            <div class="poem-line">氤氲在你离开之地，</div>
+            <div class="poem-line">是你的活力。</div>
+            <div class="poem-line">我仿佛回到，</div>
+            <div class="poem-line">亲戚家中七个孩子的喧闹。</div>
+            <div class="poem-line">我是他们的车头，</div>
+            <div class="poem-line">带着他们冲向山坡，河流，</div>
+            <div class="poem-line highlight">放声大笑。</div>
+            <div class="poem-line next-arrow-btn">
+                <svg class="hand-drawn-arrow" viewBox="0 0 30 30">
+                    <path d="M15 3 Q 14 15 15 28" />
+                    <path d="M 5 16 Q 10 22 15 28" />
+                    <path d="M 25 16 Q 20 22 15 28" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="poem-layer-3" class="poem-layer" onclick="transitionToPage4(event)">
+        <div class="poem-content">
+            <div class="spacer-top"></div>
+            <div class="poem-line highlight">你好哇！</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">又是一个奇妙，</div>
+            <div class="poem-line">意外之料。</div>
+            <div class="poem-line">我在找回我的勇气，</div>
+            <div class="poem-line">面对困难的镣铐。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我不会逃跑，</div>
+            <div class="poem-line">因为我看到，</div>
+            <div class="poem-line highlight">反抗，</div>
+            <div class="poem-line">让我拥有力量的矛。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我对自己鼓气，</div>
+            <div class="poem-line">哪怕微不足道。</div>
+            <div class="poem-line">但是，</div>
+            <div class="poem-line">可以披荆斩棘，</div>
+            <div class="poem-line highlight">成为我想要成为的美好。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我以为可以抽身，</div>
+            <div class="poem-line">应对你的苦恼。</div>
+            <div class="poem-line">他们却成团成套，</div>
+            <div class="poem-line">迂回，</div>
+            <div class="poem-line">解决最远的火烤。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">乌云是阳光的阶梯，</div>
+            <div class="poem-line">他可以普照，</div>
+            <div class="poem-line">笼盖大地，</div>
+            <div class="poem-line">接连海洋。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line highlight">黑色的斑点</div>
+            <div class="poem-line highlight">没有眉骨。</div>
+            <div class="poem-line next-arrow-btn">
+                <svg class="hand-drawn-arrow" viewBox="0 0 30 30">
+                    <path d="M15 3 Q 14 15 15 28" />
+                    <path d="M 5 16 Q 10 22 15 28" />
+                    <path d="M 25 16 Q 20 22 15 28" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="poem-layer-4" class="poem-layer" onclick="transitionToPage5(event)">
+        <div class="poem-content">
+            <div class="spacer-top"></div>
+            <div class="poem-line highlight">你好哇！</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你换了一套霓裳，</div>
+            <div class="poem-line">不是太阳的模样。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">但你的热量，</div>
+            <div class="poem-line">超过泛黄的年老恒星，</div>
+            <div class="poem-line">你拥有蓝色的火焰，</div>
+            <div class="poem-line">在天球中，</div>
+            <div class="poem-line">被追逐，</div>
+            <div class="poem-line highlight">更明亮。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">绿松石，</div>
+            <div class="poem-line">天狼给你做的新衣，</div>
+            <div class="poem-line">幻化迷离。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">高抬慢放的脚步，</div>
+            <div class="poem-line">没有重量，</div>
+            <div class="poem-line">你在轻盈地，</div>
+            <div class="poem-line highlight">飘。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">有东西在你周围环绕，</div>
+            <div class="poem-line">无数细小的光柱，</div>
+            <div class="poem-line">牵手舞跳。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">蓝色，</div>
+            <div class="poem-line">黄色，</div>
+            <div class="poem-line">紫色，</div>
+            <div class="poem-line">绿色，</div>
+            <div class="poem-line">棱镜无法分离，</div>
+            <div class="poem-line">透镜也不能束合。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">听河水讲，</div>
+            <div class="poem-line">过去，现在，未来，</div>
+            <div class="poem-line">一起拥抱，</div>
+            <div class="poem-line">那光，</div>
+            <div class="poem-line">是他们的回应。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">呼吸，</div>
+            <div class="poem-line">心跳，</div>
+            <div class="poem-line">我会忘掉，</div>
+            <div class="poem-line highlight">因为你的笑。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">那一瞬，</div>
+            <div class="poem-line">是一点，</div>
+            <div class="poem-line">那一点，</div>
+            <div class="poem-line">连成线，</div>
+            <div class="poem-line">那一线，</div>
+            <div class="poem-line">环成圈。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你的灵魂先你身体降临，</div>
+            <div class="poem-line">我有幸，</div>
+            <div class="poem-line highlight">窥见你的美。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">沉鱼雁，闭月花。</div>
+            <div class="poem-line">手若荑，肤凝脂。</div>
+            <div class="poem-line">青永葆，驻颜术。</div>
+            <div class="poem-line">翩惊鸿，宛游龙。</div>
+            <div class="poem-line">目如炬，神飞扬。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">风扑你脸，</div>
+            <div class="poem-line">化上淡妆，</div>
+            <div class="poem-line highlight">你的宇宙，</div>
+            <div class="poem-line highlight">心头之上。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我想你的美好，</div>
+            <div class="poem-line">是墨黑，</div>
+            <div class="poem-line">笼银霜的寒光，</div>
+            <div class="poem-line">远眺，</div>
+            <div class="poem-line">些许星火，</div>
+            <div class="poem-line">风拽动花草。</div>
+            <div class="poem-line">清爽，</div>
+            <div class="poem-line">爬上肩膀。</div>
+            <div class="poem-line">银河，</div>
+            <div class="poem-line">是你的脚印。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">是烛芯，</div>
+            <div class="poem-line">喝醉的云朵，</div>
+            <div class="poem-line">吐着昏黄，</div>
+            <div class="poem-line">在堤坝上坐卧。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">它拿着蜡笔，</div>
+            <div class="poem-line">慢慢挥我，</div>
+            <div class="poem-line">我被这色泽吞没。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">上面只有小人，</div>
+            <div class="poem-line">童年时光，</div>
+            <div class="poem-line">肆意回放。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">是那样的镜子，</div>
+            <div class="poem-line">看见你的眼睛，</div>
+            <div class="poem-line">也看到我的瞳光。</div>
+            <div class="poem-line">忘了自己，</div>
+            <div class="poem-line">才能见到你。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">只是，</div>
+            <div class="poem-line">你的笑，</div>
+            <div class="poem-line">我竟可以编纂，</div>
+            <div class="poem-line highlight">山谷的回响。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">剩下的还有，</div>
+            <div class="poem-line highlight">不能处置的傻气。</div>
+            <div class="poem-line next-arrow-btn">
+                <svg class="hand-drawn-arrow" viewBox="0 0 30 30">
+                    <path d="M15 3 Q 14 15 15 28" />
+                    <path d="M 5 16 Q 10 22 15 28" />
+                    <path d="M 25 16 Q 20 22 15 28" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="poem-layer-5" class="poem-layer" onclick="transitionToPage6(event)">
+        <div class="poem-content">
+            <div class="spacer-top"></div>
+            <div class="poem-line highlight">你好哇！</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我看见你的王座，</div>
+            <div class="poem-line">还有皇冠，</div>
+            <div class="poem-line">你在登基，</div>
+            <div class="poem-line">成为君王。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你不太会记起，</div>
+            <div class="poem-line">你用几次加油，</div>
+            <div class="poem-line">来催促，</div>
+            <div class="poem-line">老旧的发动机。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你的笑，</div>
+            <div class="poem-line highlight">是你的羽翼。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">绿松石，</div>
+            <div class="poem-line">天狼给你做的新衣，</div>
+            <div class="poem-line">幻化迷离。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你一定爱听音乐吧，</div>
+            <div class="poem-line">关于曲风，</div>
+            <div class="poem-line">有kpop吧，</div>
+            <div class="poem-line">你听tek it，</div>
+            <div class="poem-line">还是青鸟，</div>
+            <div class="poem-line">是boa，</div>
+            <div class="poem-line">milet吗？</div>
+            <div class="poem-line">我瞎猜的，</div>
+            <div class="poem-line">没机会问你。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我听过好多，</div>
+            <div class="poem-line">奇怪的歌曲，</div>
+            <div class="poem-line">他们失声，</div>
+            <div class="poem-line">告诉我的话语，</div>
+            <div class="poem-line">不从喉中讲起，</div>
+            <div class="poem-line">在寂静里。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">哦，那款游戏，</div>
+            <div class="poem-line">冻的结实，</div>
+            <div class="poem-line">火炉很大，</div>
+            <div class="poem-line">火焰却小，</div>
+            <div class="poem-line">几个将领，</div>
+            <div class="poem-line">让我操劳，</div>
+            <div class="poem-line">另个世界的兵荒马乱。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">神秘是你的邮戳，</div>
+            <div class="poem-line">装进信里，</div>
+            <div class="poem-line">你归何处，</div>
+            <div class="poem-line">方圆几里。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你的头发后面，</div>
+            <div class="poem-line">是你的世界，</div>
+            <div class="poem-line">我和它隔了层玻璃，</div>
+            <div class="poem-line">又加了层镜子。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">夜晚开车经过，</div>
+            <div class="poem-line">每次都敲扣我的门，</div>
+            <div class="poem-line">只有你一位乘客，</div>
+            <div class="poem-line highlight">但你总带着笑意。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">离开，</div>
+            <div class="poem-line">入梦。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">孤独是我的朋友，</div>
+            <div class="poem-line">它让我清醒，专注，</div>
+            <div class="poem-line">但它却嫉妒你，</div>
+            <div class="poem-line">每当我想起你，</div>
+            <div class="poem-line highlight">它对我狠发脾气。</div>
+            <div class="poem-line next-arrow-btn">
+                <svg class="hand-drawn-arrow" viewBox="0 0 30 30">
+                    <path d="M15 3 Q 14 15 15 28" />
+                    <path d="M 5 16 Q 10 22 15 28" />
+                    <path d="M 25 16 Q 20 22 15 28" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="poem-layer-6" class="poem-layer" onclick="transitionToPage7(event)">
+        <div class="poem-content">
+            <div class="spacer-top"></div>
+            <div class="poem-line highlight">你好哇，</div>
+            <div class="poem-line highlight">你好 哇，</div>
+            <div class="poem-line highlight">你 好哇</div>
+            <div class="poem-line">……</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">真是对不起，</div>
+            <div class="poem-line">我不知道，</div>
+            <div class="poem-line">声音请假休息，</div>
+            <div class="poem-line">你自己一人在这里。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">迟钝的丝茅草，</div>
+            <div class="poem-line">贴着铁锈，</div>
+            <div class="poem-line">切着钻石的馒头。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我不敢再追问你，</div>
+            <div class="poem-line">我知道，</div>
+            <div class="poem-line">那风车，</div>
+            <div class="poem-line">无法听你，</div>
+            <div class="poem-line">温柔的细语。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">冬天是无主的国度，</div>
+            <div class="poem-line">他总携带病毒，</div>
+            <div class="poem-line">光临每一个年度。</div>
+            <div class="poem-line highlight">人们披着羽绒，</div>
+            <div class="poem-line highlight">把心裸露。</div>
+            <div class="poem-line next-arrow-btn">
+                <svg class="hand-drawn-arrow" viewBox="0 0 30 30">
+                    <path d="M15 3 Q 14 15 15 28" />
+                    <path d="M 5 16 Q 10 22 15 28" />
+                    <path d="M 25 16 Q 20 22 15 28" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="poem-layer-7" class="poem-layer" onclick="transitionToPage8(event)">
+        <div class="poem-content">
+            <div class="spacer-top"></div>
+            <div class="poem-line highlight">你好吗？</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">有些东西，</div>
+            <div class="poem-line">暂停服务。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">有些时候，</div>
+            <div class="poem-line">春也不驻。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">抱歉，</div>
+            <div class="poem-line">堤坝走了，</div>
+            <div class="poem-line">我应该把自己放在前面，</div>
+            <div class="poem-line">把水收住。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">漫长的沉默，</div>
+            <div class="poem-line">是我的言语，</div>
+            <div class="poem-line">枯萎凋零，</div>
+            <div class="poem-line">碾作为诗句。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">谁给我拿了一套，</div>
+            <div class="poem-line">忧伤的丝衣，</div>
+            <div class="poem-line">我讨厌那薄软的寒意，</div>
+            <div class="poem-line">你给我的是太阳的暖意，</div>
+            <div class="poem-line">我怎能给你苦叶，</div>
+            <div class="poem-line">萃离。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">把它放在</div>
+            <div class="poem-line">炙热里，</div>
+            <div class="poem-line">化作灰烬。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line highlight">我要笑，</div>
+            <div class="poem-line highlight">像你那样。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">遇到对的人前，</div>
+            <div class="poem-line">先遇到对的自己。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">一天，</div>
+            <div class="poem-line">我与万人擦肩，</div>
+            <div class="poem-line">他们是星系的幽灵，</div>
+            <div class="poem-line">穿过我的身体。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你的射线，</div>
+            <div class="poem-line">轰击我的细胞，</div>
+            <div class="poem-line">我这个天地，</div>
+            <div class="poem-line">有了坐标。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我不对别人泛滥情绪，</div>
+            <div class="poem-line">没有裂罅可以决堤。</div>
+            <div class="poem-line">这份感受，</div>
+            <div class="poem-line">太过美妙，</div>
+            <div class="poem-line">我忘记修补。</div>
+            <div class="poem-line">野火燎了原，</div>
+            <div class="poem-line">洪水涛过天。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">思想在头脑的疆域，</div>
+            <div class="poem-line">放肆奔弥，</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">梦上了我的火车，</div>
+            <div class="poem-line">但逃了票。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">最短的是，</div>
+            <div class="poem-line">日出亲吻大地，</div>
+            <div class="poem-line">最长的是，</div>
+            <div class="poem-line">星星睡觉，</div>
+            <div class="poem-line">不闭眼睛。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">原来，</div>
+            <div class="poem-line">你的伤口，</div>
+            <div class="poem-line highlight">长出翅膀。</div>
+            <div class="poem-line highlight">跨过缝隙。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">婆娑，</div>
+            <div class="poem-line">带着泪滴。</div>
+            <div class="poem-line">可是，</div>
+            <div class="poem-line">为什么，</div>
+            <div class="poem-line">要为自由的鸟，</div>
+            <div class="poem-line">哀伤?</div>
+            <div class="poem-line">你是飞往新的篇章，</div>
+            <div class="poem-line">那是喜悦，</div>
+            <div class="poem-line">无垠无疆。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我为什么要忧伤，</div>
+            <div class="poem-line">你给我的是欢笑，</div>
+            <div class="poem-line">那我应该，</div>
+            <div class="poem-line">灿烂地给你。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">你的欢笑，</div>
+            <div class="poem-line">让我忘却，</div>
+            <div class="poem-line">我也风尘翕张。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">那不是关上的门窗，</div>
+            <div class="poem-line">是告诉我，</div>
+            <div class="poem-line">外边的风光，</div>
+            <div class="poem-line">可以自由去往。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">还有，</div>
+            <div class="poem-line">要自己点燃蜡烛，</div>
+            <div class="poem-line">辉煌发光，</div>
+            <div class="poem-line">然后踹门而出，</div>
+            <div class="poem-line">恣意张扬。</div>
+            <div class="poem-line">我才发现，</div>
+            <div class="poem-line">我也这么热爱生命，</div>
+            <div class="poem-line highlight">充满力量。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">露芒，</div>
+            <div class="poem-line">月亮拉我起床，</div>
+            <div class="poem-line">我要探看世界，</div>
+            <div class="poem-line">走上和他们沟通的桥梁。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">辉光，</div>
+            <div class="poem-line">我徜徉，</div>
+            <div class="poem-line">知识的汪洋，</div>
+            <div class="poem-line">感受历往的人们赐予的篇章。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">偃影，</div>
+            <div class="poem-line">猎户望我，</div>
+            <div class="poem-line">躯壳和灵魂混响。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我可放心睡去，</div>
+            <div class="poem-line">因为我的时光，</div>
+            <div class="poem-line">充斥着自己的美好希望。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我发现，</div>
+            <div class="poem-line">我是个值得被认识的雕塑，</div>
+            <div class="poem-line">你的言语，</div>
+            <div class="poem-line">我能幻化为万物的温床。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我要变成肆虐的光，</div>
+            <div class="poem-line">让每一个粒子，</div>
+            <div class="poem-line">染上病荒。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">他们可以</div>
+            <div class="poem-line">翻滚，</div>
+            <div class="poem-line">撒泼，</div>
+            <div class="poem-line">让你发痒。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我忘了，</div>
+            <div class="poem-line">你可能也处于，</div>
+            <div class="poem-line">迷茫，</div>
+            <div class="poem-line">可能，</div>
+            <div class="poem-line">你也难以入睡，</div>
+            <div class="poem-line">想着一遍又一遍的，</div>
+            <div class="poem-line">惆怅。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我有两个箱子，</div>
+            <div class="poem-line">一个装了感，</div>
+            <div class="poem-line">一个装着情，</div>
+            <div class="poem-line">把感给你，</div>
+            <div class="poem-line">把情留给我自己，</div>
+            <div class="poem-line highlight">在拥抱别人前，</div>
+            <div class="poem-line highlight">我要拥抱自己。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我要对你歌唱，</div>
+            <div class="poem-line">让流萤汇聚，</div>
+            <div class="poem-line">也亮起一片地方，</div>
+            <div class="poem-line">驱散迷雾笼罩的慌。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">那我就像你那样，</div>
+            <div class="poem-line">对你欢笑，</div>
+            <div class="poem-line">给你力量，</div>
+            <div class="poem-line highlight">播撒阳光！</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">种花给你，</div>
+            <div class="poem-line">若是过敏，</div>
+            <div class="poem-line">连根拔起。</div>
+            <div class="poem-line">但是那些花儿，</div>
+            <div class="poem-line">也在对你笑呢，</div>
+            <div class="poem-line">我猜，你现在，</div>
+            <div class="poem-line">在笑着吧，</div>
+            <div class="poem-line">哈哈，</div>
+            <div class="poem-line">哈哈。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我坚信一定和你相遇，</div>
+            <div class="poem-line">我会对你，</div>
+            <div class="poem-line">开朗地笑，</div>
+            <div class="poem-line">像你来时那样。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line">我总急着，</div>
+            <div class="poem-line">看见下一个东西，</div>
+            <div class="poem-line">但是忘记，</div>
+            <div class="poem-line">你的回忆已经进入我的身体，</div>
+            <div class="poem-line">或许，</div>
+            <div class="poem-line">这是对我磨砺，</div>
+            <div class="poem-line">某天，</div>
+            <div class="poem-line">我会从云中，</div>
+            <div class="poem-line">收取锦书，</div>
+            <div class="poem-line">会是你寄。</div>
+            <div class="poem-break"></div>
+            <div class="poem-line highlight">只愿，</div>
+            <div class="poem-line highlight">你好。</div>
+            <div class="poem-line next-arrow-btn">
+                <svg class="hand-drawn-arrow" viewBox="0 0 30 30">
+                    <path d="M15 3 Q 14 15 15 28" />
+                    <path d="M 5 16 Q 10 22 15 28" />
+                    <path d="M 25 16 Q 20 22 15 28" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        let activePoemLayer = null;
+
+        function transitionToPage2() {
+            const page1 = document.getElementById('page-1');
+            const page2 = document.getElementById('page-2');
+            const audio = document.getElementById('bg-music');
+            if (audio) {
+                audio.volume = 0;
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        gsap.to(audio, { volume: 1, duration: 20, ease: "power1.in" });
+                    }).catch(error => console.log("音频播放拦截:", error));
+                }
+            }
+            const tl = gsap.timeline();
+            tl.to(page1, {
+                opacity: 0, filter: "blur(20px)", scale: 1.1, duration: 2.5, ease: "power2.inOut",
+                onComplete: () => { page1.style.display = 'none'; }
+            });
+            tl.to(page2, { scale: 1, duration: 2.5, ease: "power2.out" }, "<");
+        }
+
+        function transitionToNextPage(e, currentPageId, nextPageId, nextTriggerId) {
+            if(e) e.stopPropagation();
+            closeCurrentPoem(null, () => {
+                const curPage = document.getElementById(currentPageId);
+                const nxtPage = document.getElementById(nextPageId);
+                animateTransition(curPage, nxtPage, nextTriggerId ? '#' + nextTriggerId : null);
+            });
+        }
+
+        function transitionToPage3(e) { transitionToNextPage(e, 'page-2', 'page-3', 'trigger-3'); }
+        function transitionToPage4(e) { transitionToNextPage(e, 'page-3', 'page-4', 'trigger-4'); }
+        function transitionToPage5(e) { transitionToNextPage(e, 'page-4', 'page-5', 'trigger-5'); }
+        function transitionToPage6(e) { transitionToNextPage(e, 'page-5', 'page-6', 'trigger-6'); }
+        function transitionToPage7(e) { transitionToNextPage(e, 'page-6', 'page-7', 'trigger-7'); }
+        function transitionToPage8(e) { transitionToNextPage(e, 'page-7', 'page-8', null); }
+
+        function animateTransition(prevPage, nextPage, triggerSelector) {
+            const tl = gsap.timeline();
+            tl.to(prevPage, {
+                opacity: 0, filter: "blur(20px)", scale: 1.1, duration: 2.5, ease: "power2.inOut",
+                onComplete: () => { prevPage.style.display = 'none'; }
+            });
+            tl.to(nextPage, { scale: 1, duration: 2.5, ease: "power2.out" }, "<");
+            if (triggerSelector) {
+                tl.to(triggerSelector, { opacity: 1, pointerEvents: 'auto', duration: 0.5, delay: 0.5 }, "<");
+            }
+        }
+
+        function openPoem(layerId) {
+            const layer = document.getElementById(layerId);
+            activePoemLayer = layer;
+            const scrollArrow = document.getElementById('scroll-arrow');
+            gsap.to('.trigger-area', { opacity: 0, duration: 0.5, pointerEvents: "none" });
+            layer.scrollTop = 0;
+            layer.style.visibility = 'visible';
+            layer.classList.add('active');
+            gsap.to(layer, { opacity: 1, duration: 1 });
+            gsap.set(scrollArrow, { opacity: 0, pointerEvents: 'auto' });
+            gsap.to(scrollArrow, { opacity: 1, delay: 1, duration: 1 });
+            const hideArrowOnScroll = () => {
+                if(layer.scrollTop > 5) {
+                    gsap.to(scrollArrow, { opacity: 0, duration: 0.3, overwrite: true });
+                    layer.removeEventListener('scroll', hideArrowOnScroll);
+                }
+            };
+            layer.addEventListener('scroll', hideArrowOnScroll);
+            initTextAnimation(layer, scrollArrow);
+        }
+
+        function initTextAnimation(container, scrollArrowRef) {
+            const lines = container.querySelectorAll('.poem-line');
+            ScrollTrigger.refresh();
+            lines.forEach((line) => {
+                if (line.classList.contains('next-arrow-btn')) {
+                    ScrollTrigger.create({
+                        trigger: line, scroller: container, start: "top 95%",
+                        onEnter: () => { gsap.to(scrollArrowRef, { opacity: 0, duration: 0.2, overwrite: true }); }
+                    });
+                    gsap.fromTo(line,
+                        { opacity: 0, scale: 0.8, filter: "blur(10px)", y: 30 },
+                        {
+                            opacity: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 1, ease: "back.out(1.7)",
+                            scrollTrigger: { trigger: line, scroller: container, start: "top 90%", toggleActions: "play none none reverse" }
+                        }
+                    );
+                } else {
+                    gsap.killTweensOf(line);
+                    gsap.fromTo(line,
+                        { opacity: 0, y: 40, filter: "blur(10px)" },
+                        {
+                            opacity: 1, y: 0, filter: "blur(0px)", duration: 1.5, ease: "power3.out",
+                            scrollTrigger: { trigger: line, scroller: container, start: "top 85%", toggleActions: "play none none reverse" }
+                        }
+                    );
+                }
+            });
+        }
+
+        function closeCurrentPoem(event, onCompleteCallback) {
+            if(event) event.stopPropagation();
+            if(!activePoemLayer) return;
+            const layer = activePoemLayer;
+            const scrollArrow = document.getElementById('scroll-arrow');
+            gsap.to([layer, scrollArrow], {
+                opacity: 0, duration: 0.8,
+                onComplete: () => {
+                    layer.style.visibility = 'hidden';
+                    layer.classList.remove('active');
+                    layer.scrollTop = 0;
+                    activePoemLayer = null;
+                    if (onCompleteCallback) { onCompleteCallback(); }
+                    else { gsap.to('.trigger-area', { opacity: 1, pointerEvents: 'auto', delay: 0.2, duration: 1 }); }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
